@@ -1,0 +1,25 @@
+#pprof:
+# address: :8301
+
+#metrics:
+  #address: :8302
+
+api:
+  address: 127.0.0.1:8300
+  shutdown_timeout: 5s
+
+log:
+  level: debug
+  format: console
+
+youtube:
+  save_path: ./originals
+  cache_path: ./cache
+  quality: 50
+  allowed_sizes:
+    - 144x108
+    - 144x71
+    - 224x168
+    - 240x180
+    - 288x142
+
