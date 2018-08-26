@@ -19,7 +19,8 @@ type (
 		dig.In
 
 		App    *settings.App
-		Logger *zap.Logger
+		Logger *zap.SugaredLogger
+		Engine *echo.Echo
 		Viper  *viper.Viper
 		//Nats   *nats.Client
 	}
@@ -27,31 +28,29 @@ type (
 
 var Module = module.Module{
 	{Constructor: Router},
+	{Constructor: web.NewValidator},
+	{Constructor: web.NewBinder},
+	{Constructor: web.NewEngine},
 }
 
 // New - Create new REST-API
 func Router(params Params) (http.Handler, error) {
-	v := web.NewValidator()
-	b := web.NewBinder(v)
-	e := web.NewEngine(web.EngineParams{
-		Config:    params.Viper,
-		Binder:    b,
-		Logger:    params.Logger,
-		Validator: v,
-	})
-
 	// Version:
-	e.GET("/version", version(JSON{
+	params.Engine.GET("/version", version(JSON{
 		"time":    params.App.BuildTime,
 		"version": params.App.BuildVersion,
 	}))
 
-	// Ajax:
-	if err := youtube.Attach(e, params.Logger.Sugar(), params.Viper); err != nil {
+	// Youtube actions:
+	if err := youtube.Attach(youtube.Params{
+		Engine: params.Engine,
+		Logger: params.Logger,
+		Viper:  params.Viper,
+	}); err != nil {
 		return nil, err
 	}
 
-	return e, nil
+	return params.Engine, nil
 }
 
 // Version of the application

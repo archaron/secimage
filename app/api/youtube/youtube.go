@@ -1,18 +1,45 @@
 package youtube
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
-	"net/http"
 )
 
+type Params struct {
+	Engine *echo.Echo
+	Logger *zap.SugaredLogger
+	Viper  *viper.Viper
+}
+
 // , r *chan map[string]string
-func Attach(e *echo.Echo, log *zap.SugaredLogger, v *viper.Viper) error {
-	cli := &http.Client{}
+func Attach(p Params) error {
+	// creates clientm and pass proxy from envs:
+	// - HTTP_PROXY  - for http requests
+	// - HTTPS_PROXY - for https requests
+	cli := &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+		},
+	}
 
 	// Image request:
-	e.GET("/:size/:id/:file", Vi(log, cli, v.GetString("youtube.save_path"), v.GetString("youtube.cache_path"), v.GetStringSlice("youtube.allowed_sizes"), v.GetInt("youtube.quality")))
+	handler, err := Vi(ViParams{
+		log:          p.Logger,
+		cli:          cli,
+		savePath:     p.Viper.GetString("youtube.save_path"),
+		cachePath:    p.Viper.GetString("youtube.cache_path"),
+		allowedSizes: p.Viper.GetStringSlice("youtube.allowed_sizes"),
+		quality:      p.Viper.GetInt("youtube.quality"),
+	})
+
+	if err != nil {
+		return err
+	}
+
+	p.Engine.GET("/:size/:id/:file", handler)
 
 	return nil
 }
