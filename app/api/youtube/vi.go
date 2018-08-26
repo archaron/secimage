@@ -29,7 +29,6 @@ func Vi(log *zap.SugaredLogger, cli *http.Client, savePath string, cachePath str
 			return ctx.String(http.StatusBadRequest, "FAIL")
 		}
 
-		file := ctx.Param("file")
 		size := ctx.Param("size")
 		id := ctx.Param("id")
 		var width, height int64
