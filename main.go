@@ -18,8 +18,8 @@ func main() {
 	h, err := helium.New(&settings.App{
 		File:         config,
 		Name:         name,
-		BuildTime:    Version,
-		BuildVersion: BuildTime,
+		BuildTime:    BuildTime,
+		BuildVersion: Version,
 	}, app.Module)
 	errCheck(err)
 
