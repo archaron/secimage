@@ -33,6 +33,7 @@ func Attach(p Params) error {
 		cachePath:    p.Viper.GetString("youtube.cache_path"),
 		allowedSizes: p.Viper.GetStringSlice("youtube.allowed_sizes"),
 		quality:      p.Viper.GetInt("youtube.quality"),
+		imageType:    p.Viper.GetString("youtube.type"),
 	})
 
 	if err != nil {

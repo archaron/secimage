@@ -29,6 +29,7 @@ type (
 		cachePath    string
 		allowedSizes []string
 		quality      int
+		imageType    string
 	}
 )
 
@@ -49,6 +50,10 @@ func Vi(p ViParams) (echo.HandlerFunc, error) {
 				return nil, err
 			}
 		}
+	}
+
+	if len(p.imageType) == 0 {
+		p.imageType = "hqdefault"
 	}
 
 	return func(ctx echo.Context) error {
@@ -110,7 +115,7 @@ func Vi(p ViParams) (echo.HandlerFunc, error) {
 				p.log.Debugf("Downloading %s ...", req.ID)
 
 				// Get the data
-				hqdefault := "https://i.ytimg.com/vi/" + req.ID + "/hqdefault.jpg"
+				hqdefault := "https://i.ytimg.com/vi/" + req.ID + "/" + p.imageType + ".jpg"
 				resp, err := http.Get(hqdefault)
 				if err != nil {
 					p.log.Debugf("download error %s, file: %s", err, hqdefault)
