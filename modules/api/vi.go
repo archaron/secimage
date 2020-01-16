@@ -46,6 +46,9 @@ func vi(p viParams) (echo.HandlerFunc, error) {
 	// creates all needed path, if they're not exists
 	for _, item := range []string{p.cachePath, p.savePath} {
 		if _, err := os.Stat(item); os.IsNotExist(err) {
+			p.log.Debug("creating directory",
+				zap.String("path", item),
+			)
 			if err := os.MkdirAll(item, 0777); err != nil {
 				return nil, err
 			}
@@ -89,6 +92,12 @@ func vi(p viParams) (echo.HandlerFunc, error) {
 		cacheSavePath := p.cachePath + "/" + size
 		sizedFile := cacheSavePath + "/" + req.ID + ".jpg"
 		originalFile = p.savePath + "/" + req.ID + ".jpg"
+
+		p.log.Debug("files",
+			zap.String("cache_save_path", cacheSavePath),
+			zap.String("sized_file", sizedFile),
+			zap.String("original_file", originalFile),
+		)
 
 		if _, err = os.Stat(sizedFile); os.IsNotExist(err) {
 			req.width, err = strconv.ParseUint(width, 10, 64)

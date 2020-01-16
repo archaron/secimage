@@ -15,3 +15,7 @@ image: deps
 		--build-arg REPO=$(REPO) \
 		--build-arg VERSION=$(VERSION) \
 		-t $(IMAGE_NAME) .
+
+.PHONY: release
+release: image
+	docker push $(IMAGE_NAME)
