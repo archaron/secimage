@@ -1,34 +1,25 @@
 package main
 
 import (
-	"github.com/archaron/secimage/app"
+	"github.com/archaron/secimage/misc"
+	"github.com/archaron/secimage/mod/app"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/im-kulikov/helium"
-	"github.com/im-kulikov/helium/settings"
-	"go.uber.org/dig"
 )
 
-var (
-	name      = "secimage"
-	config    = "config.yml"
-	Version   = "1.0.0"
-	BuildTime = "now"
-)
+// Replace with helium.Catch for production:
+var check = helium.CatchTrace
 
 func main() {
-	h, err := helium.New(&settings.App{
-		File:         config,
-		Name:         name,
-		BuildTime:    BuildTime,
-		BuildVersion: Version,
+	h, err := helium.New(&helium.Settings{
+		File:         misc.Config,
+		Prefix:       misc.Prefix,
+		Name:         misc.Name,
+		BuildTime:    misc.Build,
+		BuildVersion: misc.Version,
 	}, app.Module)
-	errCheck(err)
 
-	err = h.Run()
-	errCheck(err)
-}
-
-func errCheck(err error) {
-	if err != nil {
-		panic(dig.RootCause(err))
-	}
+	spew.Dump(err)
+	check(err)
+	check(h.Run())
 }

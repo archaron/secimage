@@ -8,9 +8,10 @@ api:
   address: 127.0.0.1:8300
   shutdown_timeout: 5s
 
-log:
+logger:
   level: debug
   format: console
+  trace_level: fatal
 
 youtube:
   save_path: ./originals
