@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/archaron/secimage/mod/api"
+	"github.com/archaron/secimage/modules/api"
 	"github.com/go-helium/echo"
 	"github.com/im-kulikov/helium/grace"
 	"github.com/im-kulikov/helium/logger"

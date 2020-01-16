@@ -2,8 +2,7 @@ package main
 
 import (
 	"github.com/archaron/secimage/misc"
-	"github.com/archaron/secimage/mod/app"
-	"github.com/davecgh/go-spew/spew"
+	"github.com/archaron/secimage/modules/app"
 	"github.com/im-kulikov/helium"
 )
 
@@ -19,7 +18,6 @@ func main() {
 		BuildVersion: misc.Version,
 	}, app.Module)
 
-	spew.Dump(err)
 	check(err)
 	check(h.Run())
 }
