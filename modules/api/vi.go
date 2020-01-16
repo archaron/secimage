@@ -45,12 +45,17 @@ func vi(p viParams) (echo.HandlerFunc, error) {
 
 	// creates all needed path, if they're not exists
 	for _, item := range []string{p.cachePath, p.savePath} {
-		if _, err := os.Stat(item); os.IsNotExist(err) {
-			p.log.Debug("creating directory",
-				zap.String("path", item),
-			)
-			if err := os.MkdirAll(item, 0777); err != nil {
-				return nil, err
+		if _, err := os.Stat(item); err != nil {
+			if os.IsNotExist(err) {
+				p.log.Debug("creating directory",
+					zap.String("path", item),
+				)
+				if err := os.MkdirAll(item, 0777); err != nil {
+					p.log.Error("could not create path", zap.String("path", item), zap.Error(err))
+					return nil, err
+				}
+			} else {
+				p.log.Error("could not stat path", zap.String("path", item), zap.Error(err))
 			}
 		}
 	}
@@ -100,6 +105,7 @@ func vi(p viParams) (echo.HandlerFunc, error) {
 		)
 
 		if _, err = os.Stat(sizedFile); os.IsNotExist(err) {
+			p.log.Debug("no sized file")
 			req.width, err = strconv.ParseUint(width, 10, 64)
 			if err != nil {
 				return err
@@ -111,10 +117,15 @@ func vi(p viParams) (echo.HandlerFunc, error) {
 			}
 
 			// ensure directory exists
-			if _, err := os.Stat(cacheSavePath); os.IsNotExist(err) {
-				if err := os.MkdirAll(cacheSavePath, 0777); err != nil {
-					p.log.Error("can't create folder",
-						zap.Error(err))
+			if _, err := os.Stat(cacheSavePath); err != nil {
+				if os.IsNotExist(err) {
+					if err := os.MkdirAll(cacheSavePath, 0777); err != nil {
+						p.log.Error("can't create folder",
+							zap.Error(err))
+						return ctx.String(http.StatusBadRequest, "FAIL")
+					}
+				} else {
+					p.log.Error("cannot stat cache save path", zap.Error(err))
 					return ctx.String(http.StatusBadRequest, "FAIL")
 				}
 			}
