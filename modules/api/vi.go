@@ -8,7 +8,9 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 
+	"github.com/chai2010/webp"
 	"github.com/labstack/echo/v4"
 	"github.com/nfnt/resize"
 	"go.uber.org/zap"
@@ -28,8 +30,11 @@ type (
 		savePath     string
 		cachePath    string
 		allowedSizes []string
-		quality      int
+		jpegQuality  int
+		webpQuality  float32
+		webpLossless bool
 		imageType    string
+		inputFormat  string
 	}
 )
 
@@ -60,13 +65,9 @@ func vi(p viParams) (echo.HandlerFunc, error) {
 		}
 	}
 
-	if len(p.imageType) == 0 {
-		p.imageType = "hqdefault"
-	}
-
 	return func(ctx echo.Context) error {
 		var req viRequest
-		var originalFile string
+
 		var err error
 		var img image.Image
 
@@ -94,14 +95,42 @@ func vi(p viParams) (echo.HandlerFunc, error) {
 			return ctx.String(http.StatusBadRequest, "Size is not allowed")
 		}
 
+		isWebp := strings.HasSuffix(req.File, "webp")
+
 		cacheSavePath := p.cachePath + "/" + size
-		sizedFile := cacheSavePath + "/" + req.ID + ".jpg"
-		originalFile = p.savePath + "/" + req.ID + ".jpg"
+
+		var (
+			sizedFile    string
+			originalFile string
+			originalUrl  string
+		)
+
+		if isWebp {
+			sizedFile = cacheSavePath + "/" + req.ID + ".webp"
+			originalFile = p.savePath + "/" + req.ID + ".webp"
+			originalUrl = "https://i.ytimg.com/vi_webp/" + req.ID + "/" + p.imageType + ".webp"
+		} else {
+			sizedFile = cacheSavePath + "/" + req.ID + ".jpg"
+			originalFile = p.savePath + "/" + req.ID + ".jpg"
+			originalUrl = "https://i.ytimg.com/vi/" + req.ID + "/" + p.imageType + ".jpg"
+		}
+
+		switch p.inputFormat {
+		case "webp":
+			originalUrl = "https://i.ytimg.com/vi_webp/" + req.ID + "/" + p.imageType + ".webp"
+
+		default:
+			originalUrl = "https://i.ytimg.com/vi/" + req.ID + "/" + p.imageType + ".jpg"
+		}
 
 		p.log.Debug("files",
+			zap.String("request_file", req.File),
 			zap.String("cache_save_path", cacheSavePath),
 			zap.String("sized_file", sizedFile),
 			zap.String("original_file", originalFile),
+			zap.String("original_url", originalUrl),
+			zap.String("input_format", p.inputFormat),
+			zap.Bool("is_webp", isWebp),
 		)
 
 		if _, err = os.Stat(sizedFile); os.IsNotExist(err) {
@@ -136,11 +165,10 @@ func vi(p viParams) (echo.HandlerFunc, error) {
 					zap.String("size", size))
 
 				// Get the data
-				hqdefault := "https://i.ytimg.com/vi/" + req.ID + "/" + p.imageType + ".jpg"
-				resp, err := http.Get(hqdefault)
+				resp, err := http.Get(originalUrl)
 				if err != nil {
 					p.log.Debug("could not download file",
-						zap.String("file", hqdefault),
+						zap.String("file", originalUrl),
 						zap.Error(err))
 					return err
 				}
@@ -173,7 +201,11 @@ func vi(p viParams) (echo.HandlerFunc, error) {
 			}
 			defer in.Close()
 
-			img, _, err = image.Decode(in)
+			if isWebp {
+				img, err = webp.Decode(in)
+			} else {
+				img, _, err = image.Decode(in)
+			}
 
 			// Image decode error catch
 			if err != nil {
@@ -190,14 +222,23 @@ func vi(p viParams) (echo.HandlerFunc, error) {
 			}
 			defer rout.Close()
 
-			err = jpeg.Encode(rout, resizedImage, &jpeg.Options{
-				Quality: p.quality,
-			})
+			if isWebp {
+				err = webp.Encode(rout, resizedImage, &webp.Options{
+					Lossless: p.webpLossless,
+					Quality:  p.webpQuality,
+					Exact:    false,
+				})
+			} else {
+				err = jpeg.Encode(rout, resizedImage, &jpeg.Options{
+					Quality: p.jpegQuality,
+				})
+			}
 
 			if err != nil {
 				p.log.Debug("could not encode image", zap.Error(err))
 				return err
 			}
+
 		}
 
 		return ctx.File(sizedFile)

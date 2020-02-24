@@ -5,8 +5,9 @@
   #address: :8302
 
 api:
-  address: 127.0.0.1:8300
+  address: 127.0.0.1:8400
   shutdown_timeout: 5s
+  debug: true
 
 logger:
   level: debug
@@ -16,7 +17,13 @@ logger:
 youtube:
   save_path: ./originals
   cache_path: ./cache
-  quality: 50
+  jpeg_quality: 50
+  webp_quality: 0.5
+  webp_lossless: false
+  image_type: hqdefault
+  # Webp is not available for most videos
+  input_format: jpg
+  output_format: webp
   allowed_sizes:
     - 144x108
     - 144x71

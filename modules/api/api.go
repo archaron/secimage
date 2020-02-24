@@ -39,6 +39,12 @@ func Router(p Params) (http.Handler, error) {
 		},
 	}
 
+	p.Viper.SetDefault("youtube.image_type", "hqdefault")
+	p.Viper.SetDefault("youtube.input_format", "jpg")
+	p.Viper.SetDefault("youtube.jpeg_quality", 50)
+	p.Viper.SetDefault("youtube.webp_quality", 0.5)
+	p.Viper.SetDefault("youtube.webp_lossless", false)
+
 	// Image request:
 	handler, err := vi(viParams{
 		log:          p.Logger,
@@ -46,8 +52,10 @@ func Router(p Params) (http.Handler, error) {
 		savePath:     p.Viper.GetString("youtube.save_path"),
 		cachePath:    p.Viper.GetString("youtube.cache_path"),
 		allowedSizes: p.Viper.GetStringSlice("youtube.allowed_sizes"),
-		quality:      p.Viper.GetInt("youtube.quality"),
-		imageType:    p.Viper.GetString("youtube.type"),
+		jpegQuality:  p.Viper.GetInt("youtube.jpeg_quality"),
+		imageType:    p.Viper.GetString("youtube.image_type"),
+		webpLossless: p.Viper.GetBool("youtube.webp_lossless"),
+		inputFormat:  p.Viper.GetString("youtube.input_format"),
 	})
 	if err != nil {
 		return nil, err
