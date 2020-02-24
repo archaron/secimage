@@ -55,6 +55,7 @@ func Router(p Params) (http.Handler, error) {
 		jpegQuality:  p.Viper.GetInt("youtube.jpeg_quality"),
 		imageType:    p.Viper.GetString("youtube.image_type"),
 		webpLossless: p.Viper.GetBool("youtube.webp_lossless"),
+		webpQuality:  float32(p.Viper.GetFloat64("youtube.webp_quality")),
 		inputFormat:  p.Viper.GetString("youtube.input_format"),
 	})
 	if err != nil {

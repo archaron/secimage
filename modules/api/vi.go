@@ -121,6 +121,7 @@ func vi(p viParams) (echo.HandlerFunc, error) {
 		}
 
 		p.log.Debug("files",
+			zap.Float32("webp_quality", p.webpQuality),
 			zap.String("request_file", req.File),
 			zap.String("cache_save_path", cacheSavePath),
 			zap.String("sized_file", sizedFile),
