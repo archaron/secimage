@@ -107,20 +107,17 @@ func vi(p viParams) (echo.HandlerFunc, error) {
 
 		if isWebp {
 			sizedFile = cacheSavePath + "/" + req.ID + ".webp"
-			originalFile = p.savePath + "/" + req.ID + ".webp"
-			originalUrl = "https://i.ytimg.com/vi_webp/" + req.ID + "/" + p.imageType + ".webp"
 		} else {
 			sizedFile = cacheSavePath + "/" + req.ID + ".jpg"
-			originalFile = p.savePath + "/" + req.ID + ".jpg"
-			originalUrl = "https://i.ytimg.com/vi/" + req.ID + "/" + p.imageType + ".jpg"
 		}
 
 		switch p.inputFormat {
 		case "webp":
 			originalUrl = "https://i.ytimg.com/vi_webp/" + req.ID + "/" + p.imageType + ".webp"
-
+			originalFile = p.savePath + "/" + req.ID + ".webp"
 		default:
 			originalUrl = "https://i.ytimg.com/vi/" + req.ID + "/" + p.imageType + ".jpg"
+			originalFile = p.savePath + "/" + req.ID + ".jpg"
 		}
 
 		p.log.Debug("files",
@@ -201,7 +198,7 @@ func vi(p viParams) (echo.HandlerFunc, error) {
 			}
 			defer in.Close()
 
-			if isWebp {
+			if p.inputFormat == "webp" {
 				img, err = webp.Decode(in)
 			} else {
 				img, _, err = image.Decode(in)

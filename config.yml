@@ -5,7 +5,7 @@
   #address: :8302
 
 api:
-  address: 127.0.0.1:8400
+  address: 127.0.0.1:8300
   shutdown_timeout: 5s
   debug: true
 
@@ -23,7 +23,6 @@ youtube:
   image_type: hqdefault
   # Webp is not available for most videos
   input_format: jpg
-  output_format: webp
   allowed_sizes:
     - 144x108
     - 144x71
